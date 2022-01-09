@@ -114,16 +114,10 @@ func DesmearTransform(data []complex128) []complex128 {
 }
 
 //textを2進数に変換後、2bitづつに分解
-func MakeBitArray(text string, length int) []string {
-	bitTexts := make([]string, length)
-	for i := 0; i < len(bitTexts); i++ {
-		var value string
-		if i < len(text) {
-			value = fmt.Sprintf("%08b", text[i])
-		} else {
-			value = "00000000"
-		}
-		bitTexts[i] = value
+func MakeBitArray(text string) []string {
+	bitTexts := make([]string, 0)
+	for _, character := range text {
+		bitTexts = append(bitTexts, fmt.Sprintf("%08b", character))
 	}
 	fmt.Println(bitTexts)
 

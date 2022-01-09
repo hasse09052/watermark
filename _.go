@@ -11,7 +11,7 @@ import (
 
 const (
 	SQRT_AREA int = 16 //透かしを埋め込む領域数の平方根
-	STRENGTH      = 400
+	STRENGTH      = 100
 )
 
 /*
@@ -25,6 +25,8 @@ func main() {
 	embedText := "KazukiHasegawa"
 
 	imageSize := sourceImage.Bounds()
+	partitionY := imageSize.Max.Y / SQRT_AREA
+	partitionX := imageSize.Max.X / SQRT_AREA
 	outputImage := image.NewRGBA(imageSize)
 
 	var targetPixcels = make([][][]complex128, SQRT_AREA)
@@ -33,11 +35,11 @@ func main() {
 	}
 
 	//画像をSQRT_AREA * SQRT_AREAに分割
-	for row := imageSize.Min.Y; row < imageSize.Max.Y; row++ {
-		for col := imageSize.Min.X; col < imageSize.Max.X; col++ {
-			red, _, _, _ := sourceImage.At(col, row).RGBA()
+	for y := 0; y < imageSize.Max.Y; y++ {
+		for x := 0; x < imageSize.Max.X; x++ {
+			red, _, _, _ := sourceImage.At(y, x).RGBA()
 			red = red >> 8
-			targetPixcels[col/SQRT_AREA][row/SQRT_AREA] = append(targetPixcels[col/SQRT_AREA][row/SQRT_AREA], complex(float64(red), 0))
+			targetPixcels[y/partitionY][x/partitionX] = append(targetPixcels[y/partitionY][x/partitionX], complex(float64(red), 0))
 		}
 	}
 	fmt.Println(targetPixcels[0][0][:20])
@@ -47,12 +49,12 @@ func main() {
 	fmt.Println(bitTexts)
 	fmt.Println(len(bitTexts))
 
-	for row := 0; row < len(targetPixcels); row++ {
-		for col := 0; col < len(targetPixcels[row]); col++ {
+	for y := 0; y < len(targetPixcels); y++ {
+		for x := 0; x < len(targetPixcels[y]); x++ {
 			var maxValue float64 = 0
 			var targetValue float64 = 0
 			embedIndex := 0
-			for index, value := range targetPixcels[row][col] {
+			for index, value := range targetPixcels[y][x] {
 				if real(value) >= maxValue {
 					maxValue = real(value)
 				}
@@ -77,24 +79,37 @@ func main() {
 				bitTexts = bitTexts[1:]
 			}
 
-			impulse := make([]complex128, len(targetPixcels[row][col]))
+			impulse := make([]complex128, len(targetPixcels[y][x]))
 			impulse[embedIndex] = complex(maxValue-targetValue+STRENGTH, 0)
-			impulse = lib.SmearTransform(impulse)
+			targetPixcels[y][x] = lib.SmearTransform(targetPixcels[y][x])
 
-			for i := 0; i < len(targetPixcels[row][col]); i++ {
-				targetPixcels[row][col][i] += impulse[i]
+			for i := range targetPixcels[y][x] {
+				targetPixcels[y][x][i] += impulse[i]
+			}
+			targetPixcels[y][x] = lib.DesmearTransform(targetPixcels[y][x])
+
+			//正規化
+			for i := range targetPixcels[y][x] {
+				normalization := real(targetPixcels[y][x][i]) + 0.5
+				if normalization < 0 {
+					targetPixcels[y][x][i] = 0
+				} else if normalization > 255 {
+					targetPixcels[y][x][i] = 255
+				} else {
+					targetPixcels[y][x][i] = complex(math.Floor(normalization), 0)
+				}
 			}
 		}
 	}
 
-	for row := imageSize.Min.Y; row < imageSize.Max.Y; row++ {
-		for col := imageSize.Min.X; col < imageSize.Max.X; col++ {
-			_, g, b, a := sourceImage.At(col, row).RGBA()
-			r := targetPixcels[col/SQRT_AREA][row/SQRT_AREA][0]
-			targetPixcels[col/SQRT_AREA][row/SQRT_AREA] = targetPixcels[col/16][row/16][1:]
+	for y := 0; y < imageSize.Max.Y; y++ {
+		for x := 0; x < imageSize.Max.X; x++ {
+			_, g, b, a := sourceImage.At(y, x).RGBA()
+			r := targetPixcels[y/partitionY][x/partitionX][0]
+			targetPixcels[y/partitionY][x/partitionX] = targetPixcels[y/partitionY][x/partitionX][1:]
 
 			color := color.RGBA{R: uint8(real(r)), G: uint8(g), B: uint8(b), A: uint8(a)}
-			outputImage.Set(col, row, color)
+			outputImage.Set(y, x, color)
 		}
 	}
 
@@ -106,6 +121,8 @@ func main2() {
 	sourceImage := lib.InputImage("./result.png")
 
 	imageSize := sourceImage.Bounds()
+	partitionY := imageSize.Max.Y / SQRT_AREA
+	partitionX := imageSize.Max.X / SQRT_AREA
 
 	var targetPixcels = make([][][]complex128, SQRT_AREA)
 	for i := range targetPixcels {
@@ -113,22 +130,22 @@ func main2() {
 	}
 
 	//画像をSQRT_AREA * SQRT_AREAに分割
-	for row := imageSize.Min.Y; row < imageSize.Max.Y; row++ {
-		for col := imageSize.Min.X; col < imageSize.Max.X; col++ {
-			red, _, _, _ := sourceImage.At(col, row).RGBA()
+	for y := 0; y < imageSize.Max.Y; y++ {
+		for x := 0; x < imageSize.Max.X; x++ {
+			red, _, _, _ := sourceImage.At(y, x).RGBA()
 			red = red >> 8
-			targetPixcels[col/SQRT_AREA][row/SQRT_AREA] = append(targetPixcels[col/SQRT_AREA][row/SQRT_AREA], complex(float64(red), 0))
+			targetPixcels[y/partitionY][x/partitionX] = append(targetPixcels[y/partitionY][x/partitionX], complex(float64(red), 0))
 		}
 	}
 
 	decodeBitText := make([]string, 0)
-	for row := 0; row < len(targetPixcels); row++ {
-		for col := 0; col < len(targetPixcels[row]); col++ {
-			targetPixcels[row][col] = lib.DesmearTransform(targetPixcels[row][col])
+	for y := 0; y < len(targetPixcels); y++ {
+		for x := 0; x < len(targetPixcels[y]); x++ {
+			targetPixcels[y][x] = lib.SmearTransform(targetPixcels[y][x])
 
 			var maxValue float64 = 0
 			embedIndex := 0
-			for index, value := range targetPixcels[row][col] {
+			for index, value := range targetPixcels[y][x] {
 				if real(value) >= maxValue {
 					maxValue = real(value)
 					embedIndex = index
@@ -156,8 +173,8 @@ func main2() {
 	// for row := imageSize.Min.Y; row < imageSize.Max.Y; row++ {
 	// 	for col := imageSize.Min.X; col < imageSize.Max.X; col++ {
 	// 		_, g, b, a := sourceImage.At(col, row).RGBA()
-	// 		r := targetPixcels[col/SQRT_AREA][row/SQRT_AREA][0]
-	// 		targetPixcels[col/SQRT_AREA][row/SQRT_AREA] = targetPixcels[col/16][row/16][1:]
+	// 		r := targetPixcels[y/partitionY][x/partitionX][0]
+	// 		targetPixcels[y/partitionY][x/partitionX] = targetPixcels[col/16][row/16][1:]
 
 	// 		color := color.RGBA{R: uint8(real(r)), G: uint8(g), B: uint8(b), A: uint8(a)}
 	// 		outputImage.Set(col, row, color)
