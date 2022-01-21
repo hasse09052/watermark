@@ -11,7 +11,7 @@ import (
 
 const (
 	PIXCEL_PER_BLOCK = 256
-	STRENGTH         = 100
+	STRENGTH         = 200
 )
 
 func main() {
@@ -38,7 +38,12 @@ func main() {
 
 	var embedPixcels = make([]complex128, 0)
 	for i := 0; i < len(OneDimensionalImage)/PIXCEL_PER_BLOCK; i++ {
-		targetPixcels := OneDimensionalImage[i*PIXCEL_PER_BLOCK : (i+1)*PIXCEL_PER_BLOCK]
+		var targetPixcels []complex128
+		if (i+1)*PIXCEL_PER_BLOCK > len(OneDimensionalImage) {
+			targetPixcels = OneDimensionalImage[i*PIXCEL_PER_BLOCK:]
+		} else {
+			targetPixcels = OneDimensionalImage[i*PIXCEL_PER_BLOCK : (i+1)*PIXCEL_PER_BLOCK]
+		}
 		targetPixcels = lib.SmearTransform(targetPixcels)
 
 		var bitText string
@@ -92,11 +97,15 @@ func main() {
 		embedPixcels = append(embedPixcels, targetPixcels...)
 	}
 
+	fmt.Println(imageSize.Max.Y * imageSize.Max.X)
+	fmt.Println(len(embedPixcels))
 	for y := 0; y < imageSize.Max.Y; y++ {
 		for x := 0; x < imageSize.Max.X; x++ {
-			r, g, _, a := sourceImage.At(y, x).RGBA()
-			b := real(embedPixcels[0])
-			embedPixcels = embedPixcels[1:]
+			r, g, b, a := sourceImage.At(y, x).RGBA()
+			if len(embedPixcels) > 0 {
+				b = uint32(real(embedPixcels[0]))
+				embedPixcels = embedPixcels[1:]
+			}
 
 			color := color.RGBA{R: uint8(r), G: uint8(g), B: uint8(b), A: uint8(a)}
 			outputImage.Set(y, x, color)
