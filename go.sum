@@ -1,0 +1,4 @@
+github.com/mjibson/go-dsp v0.0.0-20180508042940-11479a337f12 h1:dd7vnTDfjtwCETZDrRe+GPYNLA1jBtbZeyfyE8eZCyk=
+github.com/mjibson/go-dsp v0.0.0-20180508042940-11479a337f12/go.mod h1:i/KKcxEWEO8Yyl11DYafRPKOPVYTrhxiTRigjtEEXZU=
+golang.org/x/exp/errors v0.0.0-20220121174013-7b334a16533f h1:jJLWvYJGecUI+erL0GpjmDL2agsVDHBqQtO+1OzUY5g=
+golang.org/x/exp/errors v0.0.0-20220121174013-7b334a16533f/go.mod h1:YgqsNsAu4fTvlab/7uiYK9LJrCIzKg/NiZUIH1/ayqo=

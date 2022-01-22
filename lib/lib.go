@@ -24,6 +24,7 @@ func InputImage(filePath string) image.Image {
 
 func OutputImage(image image.Image, filePath string) {
 	outputFile, err := os.Create(filePath)
+	defer outputFile.Close()
 	if err != nil {
 		fmt.Println("create error")
 	}

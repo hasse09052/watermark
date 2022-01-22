@@ -15,7 +15,7 @@ const (
 )
 
 func main() {
-	sourceImage := lib.InputImage("./Lenna.png")
+	sourceImage := lib.InputImage("./test3.png")
 	embedText := "KazukiHasegawa"
 
 	imageSize := sourceImage.Bounds()
@@ -25,7 +25,7 @@ func main() {
 	//画像のRGBを格納
 	for y := 0; y < imageSize.Max.Y; y++ {
 		for x := 0; x < imageSize.Max.X; x++ {
-			_, _, b, _ := sourceImage.At(y, x).RGBA()
+			_, _, b, _ := sourceImage.At(x, y).RGBA()
 			b = b >> 8
 			OneDimensionalImage = append(OneDimensionalImage, complex(float64(b), 0))
 		}
@@ -101,14 +101,14 @@ func main() {
 	fmt.Println(len(embedPixcels))
 	for y := 0; y < imageSize.Max.Y; y++ {
 		for x := 0; x < imageSize.Max.X; x++ {
-			r, g, b, a := sourceImage.At(y, x).RGBA()
+			r, g, b, a := sourceImage.At(x, y).RGBA()
 			if len(embedPixcels) > 0 {
 				b = uint32(real(embedPixcels[0]))
 				embedPixcels = embedPixcels[1:]
 			}
 
 			color := color.RGBA{R: uint8(r), G: uint8(g), B: uint8(b), A: uint8(a)}
-			outputImage.Set(y, x, color)
+			outputImage.Set(x, y, color)
 		}
 	}
 
@@ -125,7 +125,7 @@ func main2() {
 	//画像のRGBを格納
 	for y := 0; y < imageSize.Max.Y; y++ {
 		for x := 0; x < imageSize.Max.X; x++ {
-			_, _, b, _ := sourceImage.At(y, x).RGBA()
+			_, _, b, _ := sourceImage.At(x, y).RGBA()
 			b = b >> 8
 			embedPixcels = append(embedPixcels, complex(float64(b), 0))
 		}
