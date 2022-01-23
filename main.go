@@ -16,7 +16,7 @@ const (
 
 func main() {
 	sourceImage := lib.InputImage("./test3.png")
-	embedText := "KazukiHasegawa"
+	embedText := "testName"
 
 	imageSize := sourceImage.Bounds()
 	outputImage := image.NewRGBA(imageSize)
@@ -32,7 +32,7 @@ func main() {
 	}
 
 	//埋め込むテキストを2進数で2bit毎に変換
-	bitTexts := lib.MakeBitArray(embedText)
+	bitTexts := lib.MakeBitTextArray(embedText)
 	fmt.Println(bitTexts)
 	fmt.Println(len(bitTexts))
 
@@ -162,14 +162,6 @@ func main2() {
 	fmt.Println(decodeBitText)
 	fmt.Println(len(decodeBitText))
 
-	// for row := imageSize.Min.Y; row < imageSize.Max.Y; row++ {
-	// 	for col := imageSize.Min.X; col < imageSize.Max.X; col++ {
-	// 		_, g, b, a := sourceImage.At(col, row).RGBA()
-	// 		r := targetPixcels[y/partitionY][x/partitionX][0]
-	// 		targetPixcels[y/partitionY][x/partitionX] = targetPixcels[col/16][row/16][1:]
-
-	// 		color := color.RGBA{R: uint8(real(r)), G: uint8(g), B: uint8(b), A: uint8(a)}
-	// 		outputImage.Set(col, row, color)
-	// 	}
-	// }
+	embedText := lib.DecodeBitTextArray(decodeBitText)
+	fmt.Println("result:" + embedText)
 }

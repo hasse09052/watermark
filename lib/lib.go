@@ -7,6 +7,7 @@ import (
 	"math"
 	"math/cmplx"
 	"os"
+	"strconv"
 
 	"github.com/mjibson/go-dsp/fft"
 )
@@ -115,7 +116,7 @@ func DesmearTransform(data []complex128) []complex128 {
 }
 
 //textを2進数に変換後、2bitづつに分解
-func MakeBitArray(text string) []string {
+func MakeBitTextArray(text string) []string {
 	bitTexts := make([]string, 0)
 	for _, character := range text {
 		bitTexts = append(bitTexts, fmt.Sprintf("%08b", character))
@@ -131,4 +132,22 @@ func MakeBitArray(text string) []string {
 	}
 
 	return result
+}
+
+func DecodeBitTextArray(textArray []string) string {
+	var bitTexts = make([]string, len(textArray)/4)
+	for i := range bitTexts {
+		for j := 0; j < 4; j++ {
+			bitTexts[i] += textArray[j]
+		}
+		textArray = textArray[4:]
+	}
+
+	text := ""
+	for _, bitText := range bitTexts {
+		num, _ := strconv.ParseInt(bitText, 2, 0)
+		text += string(num)
+	}
+
+	return text
 }
